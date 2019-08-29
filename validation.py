@@ -31,7 +31,7 @@ import matplotlib.gridspec as gridspec
 
 
 # Liste des classes, peut être changée sans problème
-patho2int, int2patho = {}, {}
+class2int, int2class = {}, {}
     
 def list_to_dict(L):
     class2int, int2class = {}, {}
@@ -47,20 +47,20 @@ class Validation:
                  x_name      = 'file',
                  y_true_name = 'y_true'
                  ):
-    """
-    Parameters
-    ----------
-    df : DataFrame or str
-        DataFrame or path to DataFrame containing result of a neural network. Columns must be name_of_image, y_true, class_1, ..., class_n
-    image_path : str
-        Path of the folder containing images in column x_name in the DataFrame
-    x_name : str, optional
-        Name for the column containing files name
-    y_true_name : str, optional
-        Name of the column containing y_true class
-    """
-        global patho2int
-        global int2patho
+        """
+        Parameters
+        ----------
+        df : DataFrame or str
+            DataFrame or path to DataFrame containing result of a neural network. Columns must be name_of_image, y_true, class_1, ..., class_n
+        image_path : str
+            Path of the folder containing images in column x_name in the DataFrame
+        x_name : str, optional
+            Name for the column containing files name
+        y_true_name : str, optional
+            Name of the column containing y_true class
+        """
+        global class2int
+        global int2class
         
         # Verification
         if type(df) == str:
@@ -77,7 +77,7 @@ class Validation:
         names           = df.keys().tolist()
         names.remove(y_true_name)
         names.remove(x_name)
-        patho2int, int2patho = list_to_dict(names)          # Creation of two dicts binding each classe with an integer
+        class2int, int2class = list_to_dict(names)          # Creation of two dicts binding each classe with an integer
         self.y_prob = np.zeros((len(self.y_true), len(names)))
         for i, name in enumerate(names):
             self.y_prob[:, i] = df[name]
@@ -103,7 +103,7 @@ class Validation:
         """
         self.matrix = confusion_matrix(self.y_true,
                                        self.y_pred,
-                                       labels = [i for i in int2patho])
+                                       labels = [i for i in int2class])
         
         if normalize:
             self.matrix = self.matrix.astype('float')
@@ -119,7 +119,7 @@ class Validation:
     
     def plot_confusion_matrix(self, normalize = False):  
         cmap    = plt.cm.Blues
-        classes = [i for i in patho2int]
+        classes = [i for i in class2int]
         title   = 'Confusion matrix'
         # Set values, titles and shape
         fig, ax = plt.subplots(figsize = (11, 9))
@@ -147,8 +147,8 @@ class Validation:
                         color="white" if self.matrix[i, j] > thresh else "black")
         
         # Aligment fix
-        ax.set_xticks(np.arange(0, len(patho2int), 0.5), minor=True)
-        ax.set_yticks(np.arange(0, len(patho2int), 0.5), minor=True)
+        ax.set_xticks(np.arange(0, len(class2int), 0.5), minor=True)
+        ax.set_yticks(np.arange(0, len(class2int), 0.5), minor=True)
         ax.grid(which='minor')
         
         ax.set_ylim(bottom = self.matrix.shape[0] - 0.5, top = -0.5)
@@ -294,18 +294,18 @@ class Validation:
         
         
     def batch_info(self):
-        patho       = [i for i in patho2int]
+        classes     = [i for i in class2int]
         fig, ax     = plt.subplots(figsize = (11, 9))
         data_true   = self.y_true
         data_pred   = self.y_pred
         data_sucess = [x for y, x in zip(data_true, data_pred) if y == x]
         counts, bins, patches = ax.hist([data_true, data_pred, data_sucess],
-                                        bins        = range(len(patho2int) + 1), 
+                                        bins        = range(len(class2int) + 1), 
                                         orientation = 'horizontal',
                                         edgecolor   = 'gray',
                                         label       = ['Real', 'Predicted', 'Succeed'])
         
-        ax.set(yticks = np.arange(0.5, len(patho2int) + 1.5), yticklabels = patho)
+        ax.set(yticks = np.arange(0.5, len(class2int) + 1.5), yticklabels = classes)
         #for i, v in enumerate(counts):
         #    ax.text(v - .005, i + .4, '{}'.format(v))
         ax.spines['right'].set_visible(False)
@@ -314,11 +314,11 @@ class Validation:
         return fig, [data_true, data_pred, data_sucess]
     
     
-    def class_info(self, patho, L):
-        i = patho2int[patho]
+    def class_info(self, classes, L):
+        i = class2int[classes]
         fig, ax     = plt.subplots(figsize = (3, 5))
         counts, bins, patches = ax.hist(L,
-                                        bins        = range(len(patho2int) + 1),
+                                        bins        = range(len(class2int) + 1),
                                         edgecolor   = 'gray',
                                         label       = ['Real', 'Predicted', 'Succeed'])
         # We use the batch info function and crop it right
@@ -385,8 +385,8 @@ class Validation:
         
         # Create a page for each function/class combination
         for function in fun:
-            for patho in patho2int:
-                pages[function + patho] = Page('temp_{}_{}.png'.format(function, patho))
+            for classe in class2int:
+                pages[function + classe] = Page('temp_{}_{}.png'.format(function, classe))
                 
         for i, x in enumerate(tqdm(self.x)):
             # Save the image of x
@@ -399,27 +399,27 @@ class Validation:
             image = cv2.imread('temp__.png')
             # Put it in the good page
             if 'plot_classe' in fun:
-                pages['plot_classe' + int2patho[self.y_true[i]]].add_image(image)
+                pages['plot_classe' + int2class[self.y_true[i]]].add_image(image)
             if 'fake_negative' in fun and color == 'red':
-                pages['fake_negative' + int2patho[self.y_true[i]]].add_image(image)
+                pages['fake_negative' + int2class[self.y_true[i]]].add_image(image)
         for j, function in enumerate(fun): 
-            for patho in patho2int:
+            for classe in class2int:
                 # Split pages in splits, each split has size of a pdf page 
-                img = cv2.imread('temp_{}_{}.png'.format(function, patho))
+                img = cv2.imread('temp_{}_{}.png'.format(function, classe))
                 im = []
                 split = [img[k*page_size:min((k+1)*page_size, img.shape[0]), ...] 
                             for k in range(1 + (img.shape[0] // page_size))]
                 for k, splitted in enumerate(split):
                     if splitted.any():
-                        cv2.imwrite('temp_{}_{}_{}.png'.format(function, patho, k), splitted)
-                        im.append(get_image('temp_{}_{}_{}.png'.format(function, patho, k), 14.5*cm))  
+                        cv2.imwrite('temp_{}_{}_{}.png'.format(function, classe, k), splitted)
+                        im.append(get_image('temp_{}_{}_{}.png'.format(function, classe, k), 14.5*cm))  
                 
                 # Add all splits in the story
-                title_section = Paragraph('{}<br/>{}'.format(function, patho), title_style)
-                fig = self.class_info(patho, info_list)
-                fig.savefig('temp_page_{}_{}.png'.format(function, patho))
+                title_section = Paragraph('{}<br/>{}'.format(function, classe), title_style)
+                fig = self.class_info(classe, info_list)
+                fig.savefig('temp_page_{}_{}.png'.format(function, classe))
                 plt.close(fig)
-                class_image = get_image('temp_page_{}_{}.png'.format(function, patho), 4*cm)
+                class_image = get_image('temp_page_{}_{}.png'.format(function, classe), 4*cm)
                 patch_display[j].append(([title_section, class_image], im))
                     
                 
@@ -457,11 +457,11 @@ class Patch:
         if info:
             info = ''
             for i, prob in enumerate(self.proba):
-                prob  = str(prob*100)[:4]
-                patho = int2patho[i]
-                info += '\n{} : {}%'.format(patho, prob)
+                prob   = str(prob*100)[:4]
+                classe = int2class[i]
+                info  += '\n{} : {}%'.format(classe, prob)
             ax.text(440, 205, info, ha='right', fontsize=10)
-            ax.text(6, 10, int2patho[self.classe])
+            ax.text(6, 10, int2class[self.classe])
         data = cv2.resize(self.data, (448, 448))
         ax.set_yticklabels([])
         ax.set_xticklabels([])
@@ -473,10 +473,10 @@ class Patch:
     def multiple_plot(self, ax, info = False, mini = False):
         ax.imshow(self.data.astype(np.uint8))
         if info and not mini:
-            ax.text(6, 10, 'Real : ' + int2patho[self.classe], fontsize = 15)
-            ax.text(6, 22, 'Predicted : ' + int2patho[self.pred], fontsize = 15)
+            ax.text(6, 10, 'Real : ' + int2class[self.classe], fontsize = 15)
+            ax.text(6, 22, 'Predicted : ' + int2class[self.pred], fontsize = 15)
         elif info:
-            ax.set_title('Real : ' + int2patho[self.classe] + '\nPredicted : ' + int2patho[self.pred])
+            ax.set_title('Real : ' + int2class[self.classe] + '\nPredicted : ' + int2class[self.pred])
         ax.set_yticklabels([])
         ax.set_xticklabels([])
         ax.xaxis.set_ticks_position('none')
@@ -503,7 +503,7 @@ class Patch:
         # Get all axes the same length
         ax.set_xlim([0, 1])
         maxprob = np.sort(self.proba)[-3:]
-        index   = [int2patho[np.where(self.proba == i)[0][0]] for i in maxprob]
+        index   = [int2class[np.where(self.proba == i)[0][0]] for i in maxprob]
         counts, bins, patches  = ax.hist(range(3), 
                                          bins        = [-0.45, 0.45 , 0.6, 1.45, 1.6, 2.6], 
                                          orientation = 'horizontal', 
