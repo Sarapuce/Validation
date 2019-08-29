@@ -334,7 +334,7 @@ class Validation:
         
         
         
-    def report(self, path, title = 'Rapport', fun = ['plot_classe', 'fake_negative']):
+    def report(self, path, title = 'Rapport', fun = ['plot_classe', 'fake_negative'], tkinter = False):
         """
         Create a report with the data contained in the object
         
@@ -362,7 +362,7 @@ class Validation:
         story              = []
         
         # Get title
-        title = Paragraph("Report on a validation batch", sample_style_sheet['Heading1'])
+        title = Paragraph(title, sample_style_sheet['Heading1'])
         
         # Get the batch info histogram
         batch_info_fig, info_list = self.batch_info()
@@ -439,11 +439,12 @@ class Validation:
                     story.append(PageBreak())
         
         my_doc.build(story)
-        file_to_remove = os.listdir()
-        file_to_remove = [i for i in file_to_remove if i.startswith('temp_')]
-        for i in file_to_remove:
-            os.remove(i)
-        print('done')
+        if not tkinter:
+            file_to_remove = os.listdir()
+            file_to_remove = [i for i in file_to_remove if i.startswith('temp_')]
+            for i in file_to_remove:
+                os.remove(i)
+        print('Done !')
         
         
 class Patch:
