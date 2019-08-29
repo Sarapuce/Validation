@@ -1,11 +1,8 @@
 import numpy as np
 import pandas as pd
-import cv2, os, collections
+import cv2, os
 import matplotlib.pyplot as plt
-from keras.models import model_from_json
-from keras.preprocessing.image import ImageDataGenerator
 from sklearn.metrics import confusion_matrix, classification_report
-from prettytable import PrettyTable
 from reportlab.pdfgen import canvas
 from reportlab.platypus import SimpleDocTemplate
 from reportlab.lib.styles import getSampleStyleSheet
@@ -25,7 +22,7 @@ import matplotlib.gridspec as gridspec
     :Example:
  
     >>> from validation import Validation
-    >>> valid = Validation('./model.json', './best_long.h5', '/media/keelab/DataBaseLames/patchs_POC/validation_db_patchs_shuffle.csv', '/media/keelab/DataBaseLames/patchs_POC/', preprocess_input)
+    >>> valid = Validation('/home/alex/output.csv', '/home/alex/images/')
     >>> valid.report('/home/alex/report.pdf')
 """
 
@@ -33,7 +30,7 @@ import matplotlib.gridspec as gridspec
 
 
 
-# Liste des pathologies, peut être changée sans problème
+# Liste des classes, peut être changée sans problème
 patho2int, int2patho = {}, {}
     
 def list_to_dict(L):
@@ -53,6 +50,14 @@ class Validation:
         
         global patho2int
         global int2patho
+        
+        if type(df) == str:
+            df = pd.read_csv(df)
+            if 'Unnamed: 0' in df.keys():
+                df = df.drop('Unnamed: 0', axis = 1)
+        
+        if not image_path.endswith('/'):
+            image_path = image_path + '/'
         
         self.image_path = image_path
         self.x          = df[x_name].tolist()
@@ -326,7 +331,6 @@ class Validation:
         matrix_confusion = get_image('temp_matrix.png', 22*cm)
 
         patch_display = [[Paragraph(name, sample_style_sheet['Heading1'])] for name in fun]
-        
 
         title_style = sample_style_sheet['Heading1']
         title_style.aligment = 1
@@ -501,15 +505,21 @@ class Page:
 if __name__ == '__main__':
     df_path      = input('Path to Pandas Dataframe\n')
     image_path   = input('Folder containing images\n')
-    save_path = input('Path to save the pdf\n')
-    '''custom_name  = input('Do you want to use custom name for datafrma ? y/n\n')
+    save_path    = input('Path to save the pdf\n')
+    custom_name  = input('Do you want to use custom name for datafrma ? y/n\n')
     if custom_name == 'y':
-        print('Pas encore implémenté')'''
+        x_name = input('Name of the column containing file names')
+        y_true = input('Name of the column containning y labels')
+    else:
+        x_name = 'file'
+        y_true = 'y_true'
         
     validation = Validation(df_path,
-                            image_path                            
+                            image_path,
+                            x_name = x_name,
+                            y_true_name = y_true
                             )
     
-    validation.report(save_path, fun = ['plot_classe', 'fake_negative'])
+    validation.report(save_path, 'Rapport', fun = ['plot_classe', 'fake_negative'])
     
         
