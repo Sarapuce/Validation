@@ -47,13 +47,25 @@ class Validation:
                  x_name      = 'file',
                  y_true_name = 'y_true'
                  ):
-        
+    """
+    Parameters
+    ----------
+    df : DataFrame or str
+        DataFrame or path to DataFrame containing result of a neural network. Columns must be name_of_image, y_true, class_1, ..., class_n
+    image_path : str
+        Path of the folder containing images in column x_name in the DataFrame
+    x_name : str, optional
+        Name for the column containing files name
+    y_true_name : str, optional
+        Name of the column containing y_true class
+    """
         global patho2int
         global int2patho
         
+        # Verification
         if type(df) == str:
             df = pd.read_csv(df)
-            if 'Unnamed: 0' in df.keys():
+            if 'Unnamed: 0' in df.keys():                   # Remove the Unnamed: 0 column if DataFrame have been saved with it
                 df = df.drop('Unnamed: 0', axis = 1)
         
         if not image_path.endswith('/'):
@@ -63,10 +75,10 @@ class Validation:
         self.x          = df[x_name].tolist()
         self.y_true     = np.array(df[y_true_name].tolist())
         names           = df.keys().tolist()
-        names.remove('y_true')
-        names.remove('file')
-        patho2int, int2patho = list_to_dict(names)
-        self.y_prob          = np.zeros((len(self.y_true), len(names)))
+        names.remove(y_true_name)
+        names.remove(x_name)
+        patho2int, int2patho = list_to_dict(names)          # Creation of two dicts binding each classe with an integer
+        self.y_prob = np.zeros((len(self.y_true), len(names)))
         for i, name in enumerate(names):
             self.y_prob[:, i] = df[name]
         self.y_pred = np.argmax(self.y_prob, axis = 1)
@@ -74,7 +86,21 @@ class Validation:
         
         
     def confusion_matrix(self, show = True, normalize = False):
-            
+        """
+        Parameters
+        ----------
+        show : bool, optional
+            True if you want to get a plt.Figure object to show the matrix
+        normalize : bool, optional
+            Normalize the matrix or not
+                
+        Returns
+        -------
+        self.matrix : np.array
+            Raw confusion matrix if not show
+        fig : plt.Figure
+            Figure object representing confusion matrix
+        """
         self.matrix = confusion_matrix(self.y_true,
                                        self.y_pred,
                                        labels = [i for i in int2patho])
@@ -82,7 +108,7 @@ class Validation:
         if normalize:
             self.matrix = self.matrix.astype('float')
             sum_matrix  = self.matrix.sum(axis=1)[:, np.newaxis]
-            sum_matrix[sum_matrix == 0] = 1000
+            sum_matrix[sum_matrix == 0] = 1000                    # Don't divide by 0
             self.matrix = self.matrix / sum_matrix
         
         if show:
@@ -95,9 +121,9 @@ class Validation:
         cmap    = plt.cm.Blues
         classes = [i for i in patho2int]
         title   = 'Confusion matrix'
+        # Set values, titles and shape
         fig, ax = plt.subplots(figsize = (11, 9))
         im = ax.imshow(self.matrix, interpolation='nearest', cmap=cmap)
-        
         ax.figure.colorbar(im, ax=ax)
         
         ax.set(xticks      = np.arange(self.matrix.shape[1]),
@@ -111,6 +137,7 @@ class Validation:
         plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
                  rotation_mode="anchor")
 
+        # Print values in the center of each squares
         fmt = '.2f' if normalize else 'd'
         thresh = self.matrix.max() / 2.
         for i in range(self.matrix.shape[0]):
@@ -118,7 +145,8 @@ class Validation:
                 ax.text(j, i, format(self.matrix[i, j], fmt),
                         ha="center", va="center",
                         color="white" if self.matrix[i, j] > thresh else "black")
-
+        
+        # Aligment fix
         ax.set_xticks(np.arange(0, len(patho2int), 0.5), minor=True)
         ax.set_yticks(np.arange(0, len(patho2int), 0.5), minor=True)
         ax.grid(which='minor')
@@ -290,9 +318,10 @@ class Validation:
         i = patho2int[patho]
         fig, ax     = plt.subplots(figsize = (3, 5))
         counts, bins, patches = ax.hist(L,
-                                        bins        = range(len(patho2int)),
+                                        bins        = range(len(patho2int) + 1),
                                         edgecolor   = 'gray',
                                         label       = ['Real', 'Predicted', 'Succeed'])
+        # We use the batch info function and crop it right
         if len(counts[0]) > i:
             ax.set(xticks = np.linspace(i, i+1, 5)[1:-1], xticklabels = np.array(counts, dtype=np.int64)[:, i])
         ax.spines['right'].set_visible(False)
@@ -306,9 +335,23 @@ class Validation:
         
         
     def report(self, path, title = 'Rapport', fun = ['plot_classe', 'fake_negative']):
-        page_size = 2304
+        """
+        Create a report with the data contained in the object
         
+        Parameters
+        ----------
+        path : str
+            Path where you want to save the report
+        title : str, optional
+            Title of the Report
+        fun : list, optional
+            List of functions you want to see in your report (not really implemented yet)
+        """
+        page_size = 2304
         def get_image(path, width=1*cm):
+            """
+            Reshape an image with the good ratio
+            """
             img = utils.ImageReader(path)
             iw, ih = img.getSize()
             aspect = ih / float(iw)
@@ -318,28 +361,35 @@ class Validation:
         sample_style_sheet = getSampleStyleSheet()
         story              = []
         
+        # Get title
         title = Paragraph("Report on a validation batch", sample_style_sheet['Heading1'])
         
+        # Get the batch info histogram
         batch_info_fig, info_list = self.batch_info()
         batch_info_fig.savefig('temp_info_batch.png')
         plt.close(batch_info_fig)
         batch_image = get_image('temp_info_batch.png', 19*cm)
-
+        
+        # Get the confusion matrix
         fig = self.confusion_matrix(normalize = True)
         fig.savefig('temp_matrix.png')
         plt.close(fig)
         matrix_confusion = get_image('temp_matrix.png', 22*cm)
-
+        
+        # List of each big categorie
         patch_display = [[Paragraph(name, sample_style_sheet['Heading1'])] for name in fun]
 
         title_style = sample_style_sheet['Heading1']
         title_style.aligment = 1
         pages = {}
+        
+        # Create a page for each function/class combination
         for function in fun:
             for patho in patho2int:
                 pages[function + patho] = Page('temp_{}_{}.png'.format(function, patho))
                 
         for i, x in enumerate(tqdm(self.x)):
+            # Save the image of x
             patch = Patch(self.load(x), self.y_true[i], self.y_prob[i])
             color = 'green' if self.y_true[i] == self.y_pred[i] else 'red'
             fig   = plt.figure(figsize = (5, 8))
@@ -347,12 +397,14 @@ class Validation:
             fig.savefig('temp__.png')
             plt.close(fig)
             image = cv2.imread('temp__.png')
+            # Put it in the good page
             if 'plot_classe' in fun:
                 pages['plot_classe' + int2patho[self.y_true[i]]].add_image(image)
             if 'fake_negative' in fun and color == 'red':
                 pages['fake_negative' + int2patho[self.y_true[i]]].add_image(image)
         for j, function in enumerate(fun): 
             for patho in patho2int:
+                # Split pages in splits, each split has size of a pdf page 
                 img = cv2.imread('temp_{}_{}.png'.format(function, patho))
                 im = []
                 split = [img[k*page_size:min((k+1)*page_size, img.shape[0]), ...] 
@@ -361,7 +413,8 @@ class Validation:
                     if splitted.any():
                         cv2.imwrite('temp_{}_{}_{}.png'.format(function, patho, k), splitted)
                         im.append(get_image('temp_{}_{}_{}.png'.format(function, patho, k), 14.5*cm))  
-
+                
+                # Add all splits in the story
                 title_section = Paragraph('{}<br/>{}'.format(function, patho), title_style)
                 fig = self.class_info(patho, info_list)
                 fig.savefig('temp_page_{}_{}.png'.format(function, patho))
@@ -376,9 +429,8 @@ class Validation:
         story.append(matrix_confusion)
         story.append(PageBreak())
         
-        
+        # Construction of the pdf
         for data in patch_display:
-            #story.append(data[0])
             for tupl in data[1:]:
                 story.append(tupl[0][0])
                 story.append(tupl[0][1])
@@ -436,7 +488,7 @@ class Patch:
         gs   = gridspec.GridSpec(6, 1, figure = fig)
         gs.update(wspace=0.025, hspace=0.05)
         
-        # Partie où l'on va afficher l'image
+        # Image display
         ax   = plt.subplot(gs[:4])
         ax.imshow(data.astype(np.uint8))
         ax.set_yticklabels([])
@@ -446,9 +498,9 @@ class Patch:
         [i[1].set_linewidth(2) for i in ax.spines.items()]
         plt.setp(ax.spines.values(), color=color)
         
-        # Partie dédiée à l'histogramme
+        # Hist display
         ax      = plt.subplot(gs[4:5])
-        # Tous les axes font la même taille
+        # Get all axes the same length
         ax.set_xlim([0, 1])
         maxprob = np.sort(self.proba)[-3:]
         index   = [int2patho[np.where(self.proba == i)[0][0]] for i in maxprob]
@@ -462,7 +514,7 @@ class Patch:
         y_label[0::2] = index
         ax.set(yticks      = y, 
                yticklabels = [])
-        # Pour éviter d'écrire en blanc sur du blanc, lorsque la barre est trop petite on écrit en noir
+        # To avoid write font on write background if the bar is too small
         for i in [0, 2, 4]:
             color = 'white' if maxprob[i//2] > 0.35 else 'black'
             ax.text(0.02 * maxprob[-1], y[i] + 0.25 + 0.05*(i == 4), y_label[i], fontsize = 13, color = color)
@@ -476,7 +528,8 @@ class Patch:
     
 class Page:
     """
-    L'objet page sert à rajouter des images au fur et à mesure sur une page en ajoutant des lignes autant que nécessaire
+    A page represent a big image containing a lot of little patches images
+    It's easy to add a new patchs images in a page
     """
     def __init__(self, path):
         self.row    = 0
