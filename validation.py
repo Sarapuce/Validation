@@ -390,7 +390,7 @@ class Validation:
                 
         for i, x in enumerate(tqdm(self.x)):
             # Save the image of x
-            patch = Patch(self.load(x), self.y_true[i], self.y_prob[i])
+            patch = Patch(self.load(x), self.y_true[i], self.y_prob[i], x)
             color = 'green' if self.y_true[i] == self.y_pred[i] else 'red'
             fig   = plt.figure(figsize = (5, 8))
             fig   = patch.single_plot_hist(fig, color)
@@ -448,11 +448,12 @@ class Validation:
         
         
 class Patch:
-    def __init__(self, data, classe, proba):
+    def __init__(self, data, classe, proba, name = ''):
         self.data   = data
         self.classe = classe
         self.proba  = proba
         self.pred   = np.argmax(proba)
+        self.name   = name
         
     def plot(self, ax, info = False):
         if info:
@@ -494,6 +495,7 @@ class Patch:
         ax.imshow(data.astype(np.uint8))
         ax.set_yticklabels([])
         ax.set_xticklabels([])
+        ax.set_title(self.name)
         ax.xaxis.set_ticks_position('none')
         ax.yaxis.set_ticks_position('none')
         [i[1].set_linewidth(2) for i in ax.spines.items()]
