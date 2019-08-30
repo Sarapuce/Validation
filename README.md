@@ -4,8 +4,8 @@ Little python script to analyse output of a net
 ### Usage
 ```
 from validation import Validation
-validation = Validation(path_df, path_image_folder)
-validation.report(path_save/name.pdf, title_of_rapport)
+validation = Validation('path_df/file.df', 'path_image_folder')
+validation.report('path_save/name.pdf', 'My personnel report on Mnist')
 ```
 
 ### DataFrame structure
