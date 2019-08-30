@@ -503,9 +503,11 @@ class Patch:
         ax      = plt.subplot(gs[4:5])
         # Get all axes the same length
         ax.set_xlim([0, 1])
-        maxprob = np.sort(self.proba)[-3:]
+        nb_classes = min(len(self.proba), 3)
+        more_than_2 = [4] if nb_classes == 3 else []
+        maxprob = np.sort(self.proba)[-nb_classes:]
         index   = [int2class[np.where(self.proba == i)[0][0]] for i in maxprob]
-        counts, bins, patches  = ax.hist(range(3), 
+        counts, bins, patches  = ax.hist(range(nb_classes), 
                                          bins        = [-0.45, 0.45 , 0.6, 1.45, 1.6, 2.6], 
                                          orientation = 'horizontal', 
                                          weights     = maxprob,
@@ -516,7 +518,7 @@ class Patch:
         ax.set(yticks      = y, 
                yticklabels = [])
         # To avoid write font on write background if the bar is too small
-        for i in [0, 2, 4]:
+        for i in [0, 2] + more_than_2:
             color = 'white' if maxprob[i//2] > 0.35 else 'black'
             ax.text(0.02 * maxprob[-1], y[i] + 0.25 + 0.05*(i == 4), y_label[i], fontsize = 13, color = color)
         ax.spines['right'].set_visible(False)
