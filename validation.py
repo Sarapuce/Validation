@@ -171,7 +171,7 @@ class Validation:
         if type(x) == str:
             return cv2.imread(self.image_path + x)
         if type(x) == list:
-            return np.array([cv2.imread(i) for i in x])
+            return np.array([cv2.imread(self.image_path + i) for i in x])
     
     
     def patch_plot(self, i, info = False):
