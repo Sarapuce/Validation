@@ -54,7 +54,7 @@ class Validation:
             DataFrame or path to DataFrame containing result of a neural network. Columns must be name_of_image, y_true, class_1, ..., class_n
         image_path : str
             Path of the folder containing images in column x_name in the DataFrame
-        x_name : str, optional
+        x_name : str or list, optional
             Name for the column containing files name
         y_true_name : str, optional
             Name of the column containing y_true class
@@ -71,12 +71,20 @@ class Validation:
         if not image_path.endswith('/'):
             image_path = image_path + '/'
         
-        self.image_path = image_path
-        self.x          = df[x_name].tolist()
-        self.y_true     = np.array(df[y_true_name].tolist())
         names           = df.keys().tolist()
+        self.image_path = image_path
+        self.y_true     = np.array(df[y_true_name].tolist())
         names.remove(y_true_name)
-        names.remove(x_name)
+        
+        if type(x_name) == str:
+            self.x = df[x_name].tolist()
+            names.remove(x_name)
+        else:
+            for name in x_name:
+                self.x.append(df[name].tolist())
+                names.remove(name)
+            self.x = list(zip(*self.x))
+            
         class2int, int2class = list_to_dict(names)          # Creation of two dicts binding each classe with an integer
         self.y_prob = np.zeros((len(self.y_true), len(names)))
         for i, name in enumerate(names):
