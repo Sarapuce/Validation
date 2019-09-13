@@ -194,7 +194,7 @@ class Validation:
             data     = self.load(self.x[no_image])
             classe   = self.y_true[no_image]
             proba    = self.y_prob[no_image]
-            patch    = Patch(data, classe, proba)
+            patch    = Patch(data, classe, proba, self.x[no_image])
             patch.multiple_plot(axi, info)
         for axi in ax.flat[n:]:
             fig.delaxes(axi)
@@ -214,10 +214,10 @@ class Validation:
         fig, ax = plt.subplots(nrows=row, ncols=column, figsize = (18, (11/3)*row))
         for i, axi in enumerate(ax.flat[:n]):
             no_image = display[i]
-            data     = self.data_x[no_image]
+            data     = self.load(self.x[no_image])
             classe   = self.y_true[no_image]
             proba    = self.y_prob[no_image]
-            patch    = Patch(data, classe, proba)
+            patch    = Patch(data, classe, proba, self.x[no_image])
             patch.multiple_plot(axi, True, True)
         for axi in ax.flat[n:]:
             fig.delaxes(axi)
