@@ -171,7 +171,7 @@ class Validation:
         if type(x) == str:
             return cv2.imread(self.image_path + x)
         if type(x) == list:
-            return np.array([cv2.imread(self.image_path + i) for i in x])
+            return np.array([cv2.imread(i) for i in x])
     
     
     def patch_plot(self, i, info = False):
@@ -396,20 +396,24 @@ class Validation:
             for classe in class2int:
                 pages[function + classe] = Page('temp_{}_{}.png'.format(function, classe))
                 
-        for i, x in enumerate(tqdm(self.x)):
-            # Save the image of x
-            patch = Patch(self.load(x), self.y_true[i], self.y_prob[i], x)
-            color = 'green' if self.y_true[i] == self.y_pred[i] else 'red'
-            fig   = plt.figure(figsize = (5, 8))
-            fig   = patch.single_plot_hist(fig, color)
-            fig.savefig('temp__.png')
-            plt.close(fig)
-            image = cv2.imread('temp__.png')
-            # Put it in the good page
-            if 'plot_classe' in fun:
-                pages['plot_classe' + int2class[self.y_true[i]]].add_image(image)
-            if 'fake_negative' in fun and color == 'red':
-                pages['fake_negative' + int2class[self.y_true[i]]].add_image(image)
+        for i, x_name in enumerate(tqdm(self.x)):
+            if type(x_name) != tuple:
+                # If not multiple plot create an iterable object with x inside
+                x_name = [x_name]
+            for x in x_name:
+                # Save the image of x in the right page
+                patch = Patch(self.load(x), self.y_true[i], self.y_prob[i], x)
+                color = 'green' if self.y_true[i] == self.y_pred[i] else 'red'
+                fig   = plt.figure(figsize = (5, 8))
+                fig   = patch.single_plot_hist(fig, color)
+                fig.savefig('temp__.png')
+                plt.close(fig)
+                image = cv2.imread('temp__.png')
+                # Put it in the good page
+                if 'plot_classe' in fun:
+                    pages['plot_classe' + int2class[self.y_true[i]]].add_image(image)
+                if 'fake_negative' in fun and color == 'red':
+                    pages['fake_negative' + int2class[self.y_true[i]]].add_image(image)
         for j, function in enumerate(fun): 
             for classe in class2int:
                 # Split pages in splits, each split has size of a pdf page 
