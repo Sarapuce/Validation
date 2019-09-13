@@ -44,7 +44,7 @@ class Validation:
     def __init__(self, 
                  df,
                  image_path  = '',
-                 x_name      = 'file',
+                 x_name      = [],
                  y_true_name = 'y_true'
                  ):
         """
@@ -54,8 +54,8 @@ class Validation:
             DataFrame or path to DataFrame containing result of a neural network. Columns must be name_of_image, y_true, class_1, ..., class_n
         image_path : str
             Path of the folder containing images in column x_name in the DataFrame
-        x_name : str or list, optional
-            Name for the column containing files name
+        x_name : list, optional
+            List of names for the column containing files name
         y_true_name : str, optional
             Name of the column containing y_true class
         """
@@ -76,14 +76,16 @@ class Validation:
         self.y_true     = np.array(df[y_true_name].tolist())
         names.remove(y_true_name)
         
-        if type(x_name) == str:
-            self.x = df[x_name].tolist()
-            names.remove(x_name)
-        else:
-            for name in x_name:
-                self.x.append(df[name].tolist())
-                names.remove(name)
-            self.x = list(zip(*self.x))
+        self.x = []
+        if not x_name:
+            for name in names:
+                if name.startswith('file_'):
+                    x_name.append(name)
+        
+        for name in x_name:
+            self.x.append(df[name].tolist())
+            names.remove(name)
+        self.x = list(zip(*self.x))
             
         class2int, int2class = list_to_dict(names)          # Creation of two dicts binding each classe with an integer
         self.y_prob = np.zeros((len(self.y_true), len(names)))
@@ -533,7 +535,7 @@ class Patch:
                yticklabels = [])
         # To avoid write font on write background if the bar is too small
         for i in [0, 2] + more_than_2:
-            color = 'white' if maxprob[i//2] > 0.35 else 'black'
+            color = 'white' if maxprob[i//2] > 0.5 else 'black'
             ax.text(0.02 * maxprob[-1], y[i] + 0.25 + 0.05*(i == 4), y_label[i], fontsize = 13, color = color)
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
