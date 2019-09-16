@@ -31,3 +31,5 @@ from validation import Validation
 validation = Validation('path_df/file.df', 'path_image_folder', x_name = ['file_0', 'file_1'])
 validation.report('path_save/name.pdf', 'My personnel report on Mnist')
 ```
+| WARNING: Classes order is important |
+| --- |
