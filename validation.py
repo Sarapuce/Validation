@@ -2,6 +2,10 @@ import numpy as np
 import pandas as pd
 import cv2, os
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import matplotlib.gridspec as gridspec
+import sklearn.metrics as metrics
+
 from sklearn.metrics import confusion_matrix, classification_report
 from reportlab.pdfgen import canvas
 from reportlab.platypus import SimpleDocTemplate
@@ -11,7 +15,7 @@ from reportlab.lib.units import cm
 from reportlab.lib import utils
 from reportlab.lib import colors
 from tqdm import tqdm
-import matplotlib.gridspec as gridspec
+
 
 """
     The ``validation`` module
@@ -93,8 +97,52 @@ class Validation:
             self.y_prob[:, i] = df[name]
         self.y_pred = np.argmax(self.y_prob, axis = 1)
         
+    def get_summary(self):
+        return metrics.classification_report(self.y_true, self.y_pred, output_dict = True)
+    
+    def plot_summary(self, dico):
+        class_name = []
+        self.confusion_matrix(show = False, normalize = True)
+        acc = np.diag(self.matrix)
+        for name in dico.keys():
+            if name == 'accuracy':
+                break
+            class_name.append(name)
+        data = np.zeros((4, len(class_name) + 1))
+        for i, name in enumerate(class_name):
+            data[0, i] = dico[name]['f1-score']
+            data[1, i] = dico[name]['recall']
+            data[2, i] = dico[name]['precision']
+            data[3, i] = acc[i]
+        data[0, -1] = dico['weighted avg']['f1-score']
+        data[1, -1] = dico['weighted avg']['recall']
+        data[2, -1] = dico['weighted avg']['precision']
+        data[3, -1] = metrics.accuracy_score(self.y_true, self.y_pred)
         
+        fig = plt.figure(figsize = (20,10))
+        ax = plt.gca()
+        ax.imshow(data, cmap=plt.cm.RdYlGn, interpolation='nearest', aspect = 0.1)
+        thresh = np.max(data)
+        for i in range(data.shape[0]):
+            for j in range(data.shape[1]):
+                ax.text(j, i, format(data[i, j], '.2f'),
+                        ha="center", va="center",
+                                color="white" if (data[i, j] >= 0.90*thresh or data[i, j] <= 0.20*thresh) else "black")
+        ax.set(yticklabels = ['f1', 'Recall', 'Sensitivity', 'Accuracy'],
+               xticklabels = class_name + ['Total'],
+               yticks      = range(4),
+               xticks      = range(len(class_name) + 1))
+
+        ax.set_ylim(-0.5, 3.5)
+        ax.set_xticks(np.arange(-0.5, len(class_name) + 0.5, 0.5), minor=True)
+        ax.set_yticks(np.arange(0, 3.5, 0.5), minor=True)
+        ax.grid(which = 'minor', lw = 2)
+        plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+                 rotation_mode="anchor")
         
+        return fig
+    
+    
     def confusion_matrix(self, show = True, normalize = False):
         """
         Parameters
@@ -380,6 +428,16 @@ class Validation:
         plt.close(batch_info_fig)
         batch_image = get_image('temp_info_batch.png', 19*cm)
         
+        #Get metrics
+        fig = self.plot_summary(self.get_summary())
+        fig.savefig('temp_summary')
+        plt.close(fig)
+        pic = cv2.imread('temp_summary.png')
+        pic = pic[300:-350, 100:-100, :]
+        cv2.imwrite('temp_summary.png', pic)
+        summary = get_image('temp_summary.png', 22*cm)
+        
+        
         # Get the confusion matrix
         fig = self.confusion_matrix(normalize = True)
         fig.savefig('temp_matrix.png')
@@ -441,6 +499,7 @@ class Validation:
         story.append(title)
         story.append(batch_image)
         story.append(matrix_confusion)
+        story.append(summary)
         story.append(PageBreak())
         
         # Construction of the pdf

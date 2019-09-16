@@ -30,9 +30,9 @@ def report():
     Validation(root.csv, root.img_folder).report(root.save_folder + root.save_name, tkinter = True)
     file_to_remove = os.listdir()
     file_to_remove = [i for i in file_to_remove if i.startswith('temp_')]
+    bouton4['text'] = 'Done !'
     for i in file_to_remove:
         os.remove(i)
-    bouton4['text'] = 'Done !'
     
 root = tk.Tk()
 bouton1 = tk.Button(root, text='Select csv', command = selection_csv)
