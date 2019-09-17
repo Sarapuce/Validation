@@ -4,7 +4,7 @@ Little python script to analyse output of a net
 ### Usage
 ```
 from validation import Validation
-validation = Validation('path_df/file.df', 'path_image_folder')
+validation = Validation('path_df/file.csv', 'path_image_folder')
 validation.report('path_save/name.pdf', 'My personnel report on Mnist')
 ```
 
@@ -28,7 +28,7 @@ If not precised, file name column label MUST start with 'file'. Else, you can pr
 Or
 ```
 from validation import Validation
-validation = Validation('path_df/file.df', 'path_image_folder', x_name = ['file_0', 'file_1'])
+validation = Validation('path_df/file.csv', 'path_image_folder', x_name = ['file_0', 'file_1'])
 validation.report('path_save/name.pdf', 'My personnel report on Mnist')
 ```
 | WARNING: Classes order is important |
