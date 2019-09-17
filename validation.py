@@ -121,7 +121,7 @@ class Validation:
         
         fig = plt.figure(figsize = (20,10))
         ax = plt.gca()
-        ax.imshow(data, cmap=plt.cm.RdYlGn, interpolation='nearest', aspect = 0.1)
+        ax.imshow(data, cmap=plt.cm.RdYlGn, interpolation='nearest', aspect = 0.1, vmin = 0, vmax = 1)
         thresh = np.max(data)
         for i in range(data.shape[0]):
             for j in range(data.shape[1]):
@@ -498,8 +498,8 @@ class Validation:
         
         story.append(title)
         story.append(batch_image)
-        story.append(matrix_confusion)
         story.append(summary)
+        story.append(matrix_confusion)
         story.append(PageBreak())
         
         # Construction of the pdf
