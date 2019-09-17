@@ -433,7 +433,7 @@ class Validation:
         fig.savefig('temp_summary')
         plt.close(fig)
         pic = cv2.imread('temp_summary.png')
-        pic = pic[300:-350, 100:-100, :]
+        pic = pic[300:-100, 50:-100, :]
         cv2.imwrite('temp_summary.png', pic)
         summary = get_image('temp_summary.png', 22*cm)
         
