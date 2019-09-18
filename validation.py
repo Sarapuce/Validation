@@ -392,7 +392,7 @@ class Validation:
         
         
         
-    def report(self, path, title = 'Rapport', fun = ['plot_classe', 'fake_negative'], tkinter = False):
+    def report(self, path, title = 'Rapport', fun = ['plot_classe', 'fake_negative'], nb_sample = 150, tkinter = False):
         """
         Create a report with the data contained in the object
         
@@ -456,7 +456,7 @@ class Validation:
             for classe in class2int:
                 pages[function + classe] = Page('temp_{}_{}.png'.format(function, classe))
                 
-        for i in tqdm(np.random.choice(np.arange(len(self.x)), 150, False)):
+        for i in tqdm(np.random.choice(np.arange(len(self.x)), min(nb_sample, len(self.x)), False)):
             x_name = self.x[i]
             if type(x_name) != tuple:
                 # If not multiple plot create an iterable object with x inside
