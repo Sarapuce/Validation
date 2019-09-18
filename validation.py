@@ -456,7 +456,8 @@ class Validation:
             for classe in class2int:
                 pages[function + classe] = Page('temp_{}_{}.png'.format(function, classe))
                 
-        for i, x_name in enumerate(tqdm(self.x)):
+        for i in tqdm(np.random.choice(np.arange(len(self.x)), 150, False)):
+            x_name = self.x[i]
             if type(x_name) != tuple:
                 # If not multiple plot create an iterable object with x inside
                 x_name = [x_name]
