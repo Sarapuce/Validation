@@ -392,7 +392,7 @@ class Validation:
         
         
         
-    def report(self, path, title = 'Rapport', fun = ['plot_classe', 'fake_negative'], nb_sample = 150, tkinter = False):
+    def report(self, path, title = 'Rapport', fun = ['plot_classe', 'fake_negative'], nb_sample = 150, randomize = False, tkinter = False):
         """
         Create a report with the data contained in the object
         
@@ -405,6 +405,8 @@ class Validation:
         fun : list, optional
             List of functions you want to see in your report (not really implemented yet)
         """
+        if not randomize:
+            np.random.seed(0)
         page_size = 2304
         def get_image(path, width=1*cm):
             """
