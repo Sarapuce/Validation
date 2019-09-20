@@ -8,6 +8,20 @@ validation = Validation('path_df/file.csv', 'path_image_folder')
 validation.report('path_save/name.pdf', 'My personnel report on Mnist')
 ```
 
+To get a pdf file not too heavy, you can control the number of exemple taken :
+```
+from validation import Validation
+validation = Validation('path_df/file.csv', 'path_image_folder')
+validation.report('path_save/name.pdf', 'My personnel report on Mnist', nb_sample = 150)
+```
+
+If you want to not have the same exemple sampled you can add :
+```
+from validation import Validation
+validation = Validation('path_df/file.csv', 'path_image_folder')
+validation.report('path_save/name.pdf', 'My personnel report on Mnist', nb_sample = 150, randomize = True)
+```
+
 ### DataFrame structure
 
 | |file       |y_true|class_1|class_2|class_3|
