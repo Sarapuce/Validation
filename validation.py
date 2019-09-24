@@ -434,18 +434,18 @@ class Validation:
         
         #Get metrics
         fig = self.plot_summary(self.get_summary())
-        fig.savefig('tep_summary.png')
+        fig.savefig('temp_summary.png', bbox_inches = 'tight')
         plt.close(fig)
-        pic = cv2.imread('tep_summary.png')
-        cv2.imwrite('tep_summary.png', pic)
-        summary = get_image('tep_summary.png', 22*cm)
+        pic = cv2.imread('temp_summary.png')
+        cv2.imwrite('temp_summary.png', pic)
+        summary = get_image('temp_summary.png', 20*cm)
         
         
         # Get the confusion matrix
         fig = self.confusion_matrix(normalize = True)
-        fig.savefig('temp_matrix.png')
+        fig.savefig('temp_matrix.png', bbox_inches = 'tight')
         plt.close(fig)
-        matrix_confusion = get_image('temp_matrix.png', 22*cm)
+        matrix_confusion = get_image('temp_matrix.png', 20*cm)
         
         # List of each big categorie
         patch_display = [[Paragraph(name, sample_style_sheet['Heading1'])] for name in fun]
