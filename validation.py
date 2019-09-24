@@ -119,23 +119,25 @@ class Validation:
         data[2, -1] = dico['weighted avg']['precision']
         data[3, -1] = metrics.accuracy_score(self.y_true, self.y_pred)
         
-        fig = plt.figure(figsize = (20,10))
+        data = data.T
+        fig = plt.figure(figsize = (10, 5))
         ax = plt.gca()
-        ax.imshow(data, cmap=plt.cm.RdYlGn, interpolation='nearest', aspect = 0.1, vmin = 0, vmax = 1)
+        ax.imshow(data, cmap=plt.cm.RdYlGn, interpolation='nearest', aspect = 0.1)
         thresh = np.max(data)
         for i in range(data.shape[0]):
             for j in range(data.shape[1]):
                 ax.text(j, i, format(data[i, j], '.2f'),
                         ha="center", va="center",
                                 color="white" if (data[i, j] >= 0.90*thresh or data[i, j] <= 0.20*thresh) else "black")
-        ax.set(yticklabels = ['f1', 'Recall', 'Sensitivity', 'Accuracy'],
-               xticklabels = class_name + ['Total'],
-               yticks      = range(4),
-               xticks      = range(len(class_name) + 1))
+        ax.set(xticklabels = ['f1', 'Recall', 'Sensitivity', 'Accuracy'],
+               yticklabels = list(class2int) + ['Total'],
+               xticks      = range(4),
+               yticks      = range(len(class_name) + 1))
 
-        ax.set_ylim(-0.5, 3.5)
-        ax.set_xticks(np.arange(-0.5, len(class_name) + 0.5, 0.5), minor=True)
-        ax.set_yticks(np.arange(0, 3.5, 0.5), minor=True)
+        ax.set_xlim(3.5, -0.5)
+        ax.set_ylim(len(class_name) + 0.5, -0.5)
+        ax.set_yticks(np.arange(-0.5, len(class_name) + 1., 0.5), minor=True)
+        ax.set_xticks(np.arange(-0.5, 4, 0.5), minor=True)
         ax.grid(which = 'minor', lw = 2)
         plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
                  rotation_mode="anchor")
@@ -432,12 +434,11 @@ class Validation:
         
         #Get metrics
         fig = self.plot_summary(self.get_summary())
-        fig.savefig('temp_summary')
+        fig.savefig('tep_summary.png')
         plt.close(fig)
-        pic = cv2.imread('temp_summary.png')
-        pic = pic[300:-100, 50:-100, :]
-        cv2.imwrite('temp_summary.png', pic)
-        summary = get_image('temp_summary.png', 22*cm)
+        pic = cv2.imread('tep_summary.png')
+        cv2.imwrite('tep_summary.png', pic)
+        summary = get_image('tep_summary.png', 22*cm)
         
         
         # Get the confusion matrix
