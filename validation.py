@@ -428,9 +428,9 @@ class Validation:
         
         # Get the batch info histogram
         batch_info_fig, info_list = self.batch_info()
-        batch_info_fig.savefig('temp_info_batch.png')
+        batch_info_fig.savefig('temp_info_batch.png', bbox_inches = 'tight')
         plt.close(batch_info_fig)
-        batch_image = get_image('temp_info_batch.png', 19*cm)
+        batch_image = get_image('temp_info_batch.png', 20*cm)
         
         #Get metrics
         fig = self.plot_summary(self.get_summary())
