@@ -459,8 +459,19 @@ class Validation:
         for function in fun:
             for classe in class2int:
                 pages[function + classe] = Page('temp_{}_{}.png'.format(function, classe))
-                
-        for i in tqdm(np.random.choice(np.arange(len(self.x)), min(nb_sample, len(self.x)), False)):
+            
+        def fn(n):
+             return lambda obj: obj.loc[np.random.choice(obj.index, min(n, len(obj.index)), False),:]    
+        
+        # On prends nb_sample de patchs par patho
+        df = pd.DataFrame()
+        df['x'] = self.x
+        df['y'] = self.y_true
+        
+        df  = df.groupby('y', as_index = False).apply(fn(nb_sample))
+        idx = df.index.tolist()
+        
+        for _, i in tqdm(idx):
             x_name = self.x[i]
             if type(x_name) != tuple:
                 # If not multiple plot create an iterable object with x inside
