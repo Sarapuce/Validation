@@ -204,7 +204,8 @@ class Validation:
             for j in range(self.matrix.shape[1]):
                 ax.text(j, i, format(self.matrix[i, j], fmt),
                         ha="center", va="center",
-                        color="white" if self.matrix[i, j] > thresh else "black")
+                        color="white" if self.matrix[i, j] > thresh else "black",
+                       size = "smaller")
         
         # Aligment fix
         ax.set_xticks(np.arange(0, len(class2int), 0.5), minor=True)
