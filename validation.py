@@ -36,7 +36,11 @@ from tqdm import tqdm
 
 # Liste des classes, peut être changée sans problème
 class2int, int2class = {}, {}
-    
+
+def rgb(img):
+    b,g,r = cv2.split(img)
+    return cv2.merge([r,g,b])
+
 def list_to_dict(L):
     class2int, int2class = {}, {}
     for i, name in enumerate(L):
@@ -122,7 +126,7 @@ class Validation:
         data = data.T
         fig = plt.figure(figsize = (10, 5))
         ax = plt.gca()
-        ax.imshow(data, cmap=plt.cm.RdYlGn, interpolation='nearest', aspect = 0.1)
+        ax.imshow(data, cmap=plt.cm.RdYlGn, interpolation='nearest', aspect = 0.1, vmin = 0, vmax = 1)
         thresh = np.max(data)
         for i in range(data.shape[0]):
             for j in range(data.shape[1]):
@@ -183,7 +187,10 @@ class Validation:
         title   = 'Confusion matrix'
         # Set values, titles and shape
         fig, ax = plt.subplots(figsize = (11, 9))
-        im = ax.imshow(self.matrix, interpolation='nearest', cmap=cmap)
+        if normalize:
+            im = ax.imshow(self.matrix, interpolation='nearest', cmap=cmap, vmin = 0, vmax = 1)
+        else:
+            im = ax.imshow(self.matrix, interpolation='nearest', cmap=cmap)
         ax.figure.colorbar(im, ax=ax)
         
         ax.set(xticks      = np.arange(self.matrix.shape[1]),
@@ -222,9 +229,9 @@ class Validation:
     
     def load(self, x):
         if type(x) == str:
-            return cv2.imread(self.image_path + x)
+            return rgb(cv2.imread(self.image_path + x))
         if type(x) == list:
-            return np.array([cv2.imread(i) for i in x])
+            return np.array([rgb(cv2.imread(i) for i in x)])
     
     
     def patch_plot(self, i, info = False):
@@ -395,7 +402,7 @@ class Validation:
         
         
         
-    def report(self, path, title = 'Rapport', fun = ['plot_classe', 'fake_negative'], nb_sample = 150, randomize = False, tkinter = False):
+    def report(self, path, title = 'Rapport', fun = ['plot_classe', 'fake_negative'], nb_sample = 20, randomize = False, tkinter = False):
         """
         Create a report with the data contained in the object
         
